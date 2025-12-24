@@ -1,0 +1,28 @@
+# Build artifacts
+*.o
+*.out
+kernel
+visionos
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# OS files
+.DS_Store
+*.swp
+*.swo
+*~
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# Test images
+*.jpg
+*.png
+*.jpeg
+*.bmp
