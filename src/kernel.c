@@ -1,3 +1,4 @@
+#define _DEFAULT_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -77,13 +78,25 @@ void execute_standard_command(char **args) {
 }
 
 /**
+ * Helper to route command execution
+ */
+void execute_command(char **args) {
+    if (args[0] == NULL) exit(0);
+    
+    if (is_cv_command(args[0])) {
+        execute_cv_command(args);
+    } else {
+        execute_standard_command(args);
+    }
+}
+
+/**
  * Main shell loop
  */
 int main() {
     char input[MAX_INPUT];
-    char *args[MAX_ARGS];
     
-    printf("VisionOS Shell v1.0\n");
+    printf("VisionOS Shell v1.1 (Pipeline Support)\n");
     printf("Type 'exit' to quit\n");
     printf("====================================\n\n");
     
@@ -106,47 +119,90 @@ int main() {
             continue;
         }
         
-        // Parse input into arguments
-        int argc = parse_input(input, args);
-        
-        if (argc == 0) {
-            continue;
-        }
-        
-        // Check for exit command
-        if (strcmp(args[0], "exit") == 0) {
+        // Check for exit command before parsing pipeline
+        if (strcmp(input, "exit") == 0) {
             printf("Exiting VisionOS Shell...\n");
             break;
         }
+
+        // Split by pipe '|'
+        char *commands[MAX_ARGS];
+        int num_cmds = 0;
+        char *cmd_ptr = input;
+        char *temp_cmd;
         
-        // Fork process to execute command
-        pid_t pid = fork();
-        
-        if (pid < 0) {
-            // Fork failed
-            perror("fork failed");
-            continue;
-        } else if (pid == 0) {
-            // Child process
-            if (is_cv_command(args[0])) {
-                // Execute cv- command with Python
-                execute_cv_command(args);
-            } else {
-                // Execute standard command
-                execute_standard_command(args);
+        // Use strsep to split by pipe
+        while ((temp_cmd = strsep(&cmd_ptr, "|")) != NULL && num_cmds < MAX_ARGS) {
+            if (*temp_cmd != '\0') {
+                commands[num_cmds++] = temp_cmd;
             }
-        } else {
-            // Parent process - wait for child to complete
-            int status;
-            waitpid(pid, &status, 0);
+        }
+
+        int pipefd[2];
+        int prev_pipe_read = -1;
+
+        for (int i = 0; i < num_cmds; i++) {
+            // Parse args for this command segment
+            char *args[MAX_ARGS];
+            parse_input(commands[i], args);
             
-            if (WIFEXITED(status)) {
-                int exit_status = WEXITSTATUS(status);
-                if (exit_status != 0) {
-                    // Command failed (non-zero exit)
-                    // Error message already printed by child
+            if (args[0] == NULL) continue;
+
+            // Create pipe if not the last command
+            if (i < num_cmds - 1) {
+                if (pipe(pipefd) < 0) {
+                    perror("pipe failed");
+                    break;
                 }
             }
+
+            pid_t pid = fork();
+            
+            if (pid < 0) {
+                perror("fork failed");
+                break;
+            } else if (pid == 0) {
+                // Child process
+                
+                // Redirect stdin from previous pipe
+                if (prev_pipe_read != -1) {
+                    if (dup2(prev_pipe_read, STDIN_FILENO) < 0) {
+                        perror("dup2 stdin failed");
+                        exit(1);
+                    }
+                    close(prev_pipe_read);
+                }
+                
+                // Redirect stdout to current pipe
+                if (i < num_cmds - 1) {
+                    if (dup2(pipefd[1], STDOUT_FILENO) < 0) {
+                        perror("dup2 stdout failed");
+                        exit(1);
+                    }
+                    close(pipefd[1]);
+                    close(pipefd[0]); // Close read end in child
+                }
+                
+                execute_command(args);
+            } else {
+                // Parent process
+                
+                // Close previous read end
+                if (prev_pipe_read != -1) {
+                    close(prev_pipe_read);
+                }
+                
+                // Set up next read end
+                if (i < num_cmds - 1) {
+                    prev_pipe_read = pipefd[0];
+                    close(pipefd[1]); // Close write end in parent
+                }
+            }
+        }
+        
+        // Wait for all children to finish
+        for (int i = 0; i < num_cmds; i++) {
+            wait(NULL);
         }
     }
     

@@ -40,17 +40,17 @@ vision-os/
 
 ### Installing Dependencies
 
-```bash
-# Install GCC (if not already installed)
-# On Ubuntu/Debian:
-sudo apt-get install build-essential
+1. Install system requirements (GCC and Python 3):
+   ```bash
+   # On Ubuntu/Debian:
+   sudo apt-get install build-essential python3 python3-pip python3-venv
+   ```
 
-# Install Python 3 and pip
-sudo apt-get install python3 python3-pip
-
-# Install OpenCV for Python
-pip3 install opencv-python
-```
+2. Run the project setup:
+   ```bash
+   make setup
+   ```
+   This will create a virtual environment in `.venv` and install the required Python packages (`opencv-python`, `numpy`).
 
 ## Building
 
