@@ -26,3 +26,5 @@ __pycache__/
 *.png
 *.jpeg
 *.bmp
+.venv/
+*.pdf
