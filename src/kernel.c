@@ -10,6 +10,26 @@
 #define CV_PREFIX "cv-"
 
 /**
+ * Get the absolute path to the apps directory
+ */
+void get_apps_path(char *buffer, size_t size) {
+    char exe_path[1024];
+    ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
+    if (len != -1) {
+        exe_path[len] = '\0';
+        // Remove executable name to get directory
+        char *last_slash = strrchr(exe_path, '/');
+        if (last_slash) {
+            *last_slash = '\0';
+        }
+        snprintf(buffer, size, "%s/apps", exe_path);
+    } else {
+        // Fallback to relative path if readlink fails
+        strncpy(buffer, "apps", size);
+    }
+}
+
+/**
  * Parse input string into arguments array
  * Returns the number of arguments parsed
  */
@@ -40,9 +60,13 @@ void execute_cv_command(char **args) {
     // Extract command name (e.g., "cv-show" -> "show")
     const char *cv_cmd = args[0] + strlen(CV_PREFIX);
     
+    // Get apps directory path
+    char apps_path[1024];
+    get_apps_path(apps_path, sizeof(apps_path));
+
     // Build path to Python script
-    char script_path[256];
-    snprintf(script_path, sizeof(script_path), "apps/cv_%s.py", cv_cmd);
+    char script_path[2048];
+    snprintf(script_path, sizeof(script_path), "%s/cv_%s.py", apps_path, cv_cmd);
     
     // Prepare arguments for Python script
     // Format: python3 apps/cv_show.py [args...]
@@ -57,6 +81,48 @@ void execute_cv_command(char **args) {
         i++;
     }
     py_args[i + 1] = NULL;
+    
+    // Execute Python script
+    execvp("python3", py_args);
+    
+    // If execvp returns, there was an error
+    perror("execvp failed");
+    exit(1);
+}
+
+/**
+ * Check if command is vls
+ */
+int is_vls_command(const char *cmd) {
+    return strcmp(cmd, "vls") == 0;
+}
+
+/**
+ * Execute vls command using Python script
+ */
+void execute_vls_command(char **args) {
+    // Get apps directory path
+    char apps_path[1024];
+    get_apps_path(apps_path, sizeof(apps_path));
+
+    // Build path to Python script
+    char script_path[2048];
+    snprintf(script_path, sizeof(script_path), "%s/vls.py", apps_path);
+
+    // Prepare arguments for Python script
+    // Format: python3 apps/vls.py [args...]
+    char *py_args[MAX_ARGS + 2];
+    py_args[0] = "python3";
+    py_args[1] = script_path;
+    
+    // Copy remaining arguments (skipping "vls")
+    int i = 1;
+    int py_idx = 2;
+    while (args[i] != NULL && i < MAX_ARGS - 1) {
+        py_args[py_idx++] = args[i];
+        i++;
+    }
+    py_args[py_idx] = NULL;
     
     // Execute Python script
     execvp("python3", py_args);
@@ -85,6 +151,8 @@ void execute_command(char **args) {
     
     if (is_cv_command(args[0])) {
         execute_cv_command(args);
+    } else if (is_vls_command(args[0])) {
+        execute_vls_command(args);
     } else {
         execute_standard_command(args);
     }
@@ -96,8 +164,8 @@ void execute_command(char **args) {
 int main() {
     char input[MAX_INPUT];
     
-    printf("VisionOS Shell v1.1 (Pipeline Support)\n");
-    printf("Type 'exit' to quit\n");
+    printf("VisionOS Shell Initiated.\n");
+    printf("Type 'exit' to quit.\n");
     printf("====================================\n\n");
     
     // Infinite loop for CLI prompt
@@ -147,6 +215,26 @@ int main() {
             parse_input(commands[i], args);
             
             if (args[0] == NULL) continue;
+
+            // Handle cd command (only if it's the only command in the pipeline)
+            if (strcmp(args[0], "cd") == 0 && num_cmds == 1) {
+                if (args[1] == NULL) {
+                    // cd with no args -> go to HOME
+                    char *home = getenv("HOME");
+                    if (home) {
+                        if (chdir(home) != 0) {
+                            perror("cd failed");
+                        }
+                    } else {
+                        fprintf(stderr, "cd: HOME not set\n");
+                    }
+                } else {
+                    if (chdir(args[1]) != 0) {
+                        perror("cd failed");
+                    }
+                }
+                continue;
+            }
 
             // Create pipe if not the last command
             if (i < num_cmds - 1) {

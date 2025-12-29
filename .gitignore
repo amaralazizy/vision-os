@@ -28,3 +28,9 @@ __pycache__/
 *.bmp
 .venv/
 *.pdf
+
+# Exclude images in the test_images/ directory from being ignored
+!test_images/*.jpg
+!test_images/*.png
+!test_images/*.jpeg
+!test_images/*.bmp
