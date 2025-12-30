@@ -8,6 +8,7 @@
 #define MAX_INPUT 1024
 #define MAX_ARGS 64
 #define CV_PREFIX "cv-"
+#define SH_PREFIX "sh-"
 
 /**
  * Get the absolute path to the apps directory
@@ -132,6 +133,56 @@ void execute_vls_command(char **args) {
     exit(1);
 }
 
+int is_sh_command(const char *cmd) {
+    return strncmp(cmd, SH_PREFIX, strlen(SH_PREFIX)) == 0;
+}
+
+/**
+ * Execute sh- command using Bash script
+ */
+void execute_sh_command(char **args) {
+    // Extract command name (e.g., "sh-lsinfo" -> "lsinfo")
+    const char *sh_cmd = args[0] + strlen(SH_PREFIX);
+
+    // Get the base path of the visionos executable
+    char base_path[1024];
+    ssize_t len = readlink("/proc/self/exe", base_path, sizeof(base_path) - 1);
+    if (len != -1) {
+        base_path[len] = '\0';
+        // Remove executable name to get directory
+        char *last_slash = strrchr(base_path, '/');
+        if (last_slash) *last_slash = '\0';
+    } else {
+        // fallback
+        strcpy(base_path, ".");
+    }
+
+    // Build full path to bash script
+    char script_path[2048];
+    snprintf(script_path, sizeof(script_path), "%s/bash_scripts/sh_%s.sh", base_path, sh_cmd);
+
+    // Prepare arguments for /bin/sh
+    char *sh_args[MAX_ARGS + 2];
+    sh_args[0] = "bash";       // shell
+    sh_args[1] = script_path;     // script path
+
+    // Copy remaining arguments passed by user
+    int i = 1;
+    while (args[i] != NULL && i < MAX_ARGS - 1) {
+        sh_args[i + 1] = args[i];
+        i++;
+    }
+    sh_args[i + 1] = NULL;
+
+    // Execute the script
+    execvp("bash", sh_args);
+
+    // If execvp returns, something went wrong
+    perror("execvp failed");
+    exit(1);
+}
+
+
 /**
  * Execute standard command using execvp
  */
@@ -153,6 +204,8 @@ void execute_command(char **args) {
         execute_cv_command(args);
     } else if (is_vls_command(args[0])) {
         execute_vls_command(args);
+    } else if(is_sh_command(args[0])) {
+        execute_sh_command(args);
     } else {
         execute_standard_command(args);
     }
