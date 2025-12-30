@@ -33,7 +33,7 @@ __pycache__/
 *.pt
 
 # Exclude images in the test_images/ directory from being ignored
-!test_images/*.jpg
-!test_images/*.png
-!test_images/*.jpeg
-!test_images/*.bmp
+!test_imgs/*.jpg
+!test_imgs/*.png
+!test_imgs/*.jpeg
+!test_imgs/*.bmp
