@@ -27,6 +27,7 @@ vision-os/
 │   └── kernel.c          # Main shell implementation
 ├── apps/
 │   └── cv_show.py        # OpenCV image display script
+    └── cv_<command_name>.py 
 │   └── vls.py            # Visual LS script (YOLO)
 ├── Makefile              # Build configuration
 ├── .gitignore            # Git ignore rules
