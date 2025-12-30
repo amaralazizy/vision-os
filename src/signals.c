@@ -1,12 +1,14 @@
-#include "signals.h"
+#define _POSIX_C_SOURCE 200809L
+#include "visionos.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <errno.h>
+#include <string.h>
 
-static pid_t foreground_pid = -1;
+static volatile pid_t foreground_pid = -1;
 
 void set_foreground_pid(pid_t pid) {
     foreground_pid = pid;
@@ -16,10 +18,11 @@ void handle_sigint(int sig) {
     (void)sig;
     if (foreground_pid > 0) {
         // Child handles it, we just print newline if needed
-        printf("\n");
+        const char *msg = "\n";
+        write(STDOUT_FILENO, msg, strlen(msg));
     } else {
-        printf("\nCaught SIGINT. Type 'exit' to quit.\nvisionos> ");
-        fflush(stdout);
+        const char *msg = "\nCaught SIGINT. Type 'exit' to quit.\nvisionos> ";
+        write(STDOUT_FILENO, msg, strlen(msg));
     }
 }
 
@@ -28,11 +31,15 @@ void handle_sigtstp(int sig) {
     if (foreground_pid > 0) {
         // User requested to kill on Ctrl+Z (custom behavior)
         kill(foreground_pid, SIGKILL);
-        printf("\nProcess %d killed (SIGTSTP).\n", foreground_pid);
+        
+        char msg[64];
+        int len = snprintf(msg, sizeof(msg), "\nProcess %d killed (SIGTSTP).\n", foreground_pid);
+        write(STDOUT_FILENO, msg, len);
+        
         foreground_pid = -1;
     } else {
-        printf("\nCaught SIGTSTP. No process running.\nvisionos> ");
-        fflush(stdout);
+        const char *msg = "\nCaught SIGTSTP. No process running.\nvisionos> ";
+        write(STDOUT_FILENO, msg, strlen(msg));
     }
 }
 
@@ -52,10 +59,13 @@ void handle_sigalrm(int sig) {
     (void)sig;
     if (foreground_pid > 0) {
         kill(foreground_pid, SIGKILL);
-        printf("\nTimeout! Process %d killed.\n", foreground_pid);
+        char msg[64];
+        int len = snprintf(msg, sizeof(msg), "\nTimeout! Process %d killed.\n", foreground_pid);
+        write(STDOUT_FILENO, msg, len);
     }
-    printf("\nSession timed out due to inactivity. Bye!\n");
-    exit(0);
+    const char *msg = "\nSession timed out due to inactivity. Bye!\n";
+    write(STDOUT_FILENO, msg, strlen(msg));
+    _exit(0);
 }
 
 void setup_signals() {

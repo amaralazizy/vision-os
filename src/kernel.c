@@ -6,7 +6,6 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "visionos.h"
-#include "signals.h"
 
 int main() {
     char *input;

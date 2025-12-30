@@ -1,6 +1,8 @@
 #ifndef VISIONOS_H
 #define VISIONOS_H
 
+#include <sys/types.h>
+
 #define SHELL_MAX_INPUT 1024
 #define MAX_ARGS 64
 #define MAX_HISTORY 100
@@ -47,5 +49,9 @@ char* build_path(const char *dir, const char *file);
 char** allocate_args(int count);
 void free_args(char **args);
 void print_memory_stats(void);
+
+// Signals
+void setup_signals(void);
+void set_foreground_pid(pid_t pid);
 
 #endif
