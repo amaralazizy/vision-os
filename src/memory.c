@@ -7,6 +7,7 @@
 typedef struct HistoryNode {
     char *command;
     struct HistoryNode *next;
+    struct HistoryNode *prev;
 } HistoryNode;
 
 static HistoryNode *history_head = NULL;
@@ -37,6 +38,7 @@ void add_to_history(const char *command) {
     }
     
     new_node->next = NULL;
+    new_node->prev = history_tail;
     
     // Add to linked list
     if (history_tail) {
@@ -63,7 +65,9 @@ void remove_oldest_history(void) {
     HistoryNode *old_head = history_head;
     history_head = history_head->next;
     
-    if (!history_head) {
+    if (history_head) {
+        history_head->prev = NULL;
+    } else {
         history_tail = NULL;
     }
     

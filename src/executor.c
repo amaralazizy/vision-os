@@ -19,25 +19,25 @@ void handle_redirection(char **args) {
     int i = 0;
     while (args[i] != NULL) {
         int fd = -1;
-        int redirect_type = 0; // 1: >, 2: >>, 3: <
+        RedirectType redirect_type = REDIRECT_NONE;
 
-        if (strcmp(args[i], ">") == 0) redirect_type = 1;
-        else if (strcmp(args[i], ">>") == 0) redirect_type = 2;
-        else if (strcmp(args[i], "<") == 0) redirect_type = 3;
+        if (strcmp(args[i], ">") == 0) redirect_type = REDIRECT_OVERWRITE;
+        else if (strcmp(args[i], ">>") == 0) redirect_type = REDIRECT_APPEND;
+        else if (strcmp(args[i], "<") == 0) redirect_type = REDIRECT_INPUT;
 
-        if (redirect_type != 0) {
+        if (redirect_type != REDIRECT_NONE) {
             if (args[i+1] == NULL) {
                 fprintf(stderr, "Syntax error: expected file after redirection\n");
                 exit(1);
             }
             
-            if (redirect_type == 1) {
+            if (redirect_type == REDIRECT_OVERWRITE) {
                 fd = open(args[i+1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
                 dup2(fd, STDOUT_FILENO);
-            } else if (redirect_type == 2) {
+            } else if (redirect_type == REDIRECT_APPEND) {
                 fd = open(args[i+1], O_WRONLY | O_CREAT | O_APPEND, 0644);
                 dup2(fd, STDOUT_FILENO);
-            } else if (redirect_type == 3) {
+            } else if (redirect_type == REDIRECT_INPUT) {
                 fd = open(args[i+1], O_RDONLY);
                 dup2(fd, STDIN_FILENO);
             }
