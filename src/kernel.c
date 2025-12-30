@@ -7,7 +7,9 @@
 
 int main() {
     char input[MAX_INPUT];
-    printf("VisionOS Shell Initiated.\nType 'exit' to quit.\n====================================\n\n");
+    printf("VisionOS Shell Initiated (with Memory Management).\n");
+    printf("Built-in commands: history, clear-history, mem-stats, exit\n");
+    printf("====================================\n\n");
 
     while (1) {
         printf("visionos> ");
@@ -16,7 +18,33 @@ int main() {
         if (fgets(input, MAX_INPUT, stdin) == NULL) break;
         input[strcspn(input, "\n")] = 0;
         if (strlen(input) == 0) continue;
-        if (strcmp(input, "exit") == 0) break;
+        
+        // Check for exit first
+        if (strcmp(input, "exit") == 0) {
+            printf("Cleaning up and exiting...\n");
+            clear_history();
+            break;
+        }
+        
+        // Add command to history (demonstrates dynamic memory allocation)
+        add_to_history(input);
+        
+        // Handle built-in commands for memory management demonstration
+        if (strcmp(input, "history") == 0) {
+            show_history();
+            continue;
+        }
+        
+        if (strcmp(input, "clear-history") == 0) {
+            clear_history();
+            printf("History cleared.\n");
+            continue;
+        }
+        
+        if (strcmp(input, "mem-stats") == 0) {
+            print_memory_stats();
+            continue;
+        }
 
         char *commands[MAX_ARGS];
         int num_cmds = 0;

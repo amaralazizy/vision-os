@@ -5,6 +5,7 @@ A C-based shell with integrated computer vision capabilities using OpenCV.
 ## Overview
 
 VisionOS is a custom shell implementation that provides:
+
 - Standard command execution (e.g., `ls`, `pwd`, `echo`)
 - Special `cv-` prefixed commands that execute Python scripts with OpenCV for computer vision tasks
 - Process management using `fork()`, `exec()`, and `wait()`
@@ -18,6 +19,10 @@ VisionOS is a custom shell implementation that provides:
   - CV commands: Execute Python scripts with OpenCV (e.g., `cv-show img.jpg`)
   - **Visual LS (`vls`)**: Search for images containing specific objects using YOLO (e.g., `vls car person`)
 - **Process Management**: Proper process forking and waiting
+- **Memory Management**: Dynamic memory allocation with command history tracking
+  - Command history with bounded storage (100 commands max)
+  - Built-in commands: `history`, `clear-history`, `mem-stats`
+  - Proper cleanup on exit to prevent memory leaks
 
 ## Project Structure
 
@@ -27,7 +32,7 @@ vision-os/
 │   └── kernel.c          # Main shell implementation
 ├── apps/
 │   └── cv_show.py        # OpenCV image display script
-    └── cv_<command_name>.py 
+    └── cv_<command_name>.py
 │   └── vls.py            # Visual LS script (YOLO)
 ├── Makefile              # Build configuration
 ├── .gitignore            # Git ignore rules
@@ -65,6 +70,7 @@ visionos> vls . -R --contains car
 ## Prerequisites
 
 ### System Requirements
+
 - GCC compiler
 - Python 3
 - OpenCV for Python
@@ -72,6 +78,7 @@ visionos> vls . -R --contains car
 ### Installing Dependencies
 
 1. Install system requirements (GCC and Python 3):
+
    ```bash
    # On Ubuntu/Debian:
    sudo apt-get install build-essential python3 python3-pip python3-venv
@@ -130,10 +137,28 @@ visionos> cv-show image.jpg
 ```
 
 The shell will automatically:
+
 1. Detect the `cv-` prefix
 2. Fork a new process
 3. Execute `apps/cv_show.py` with the provided arguments
 4. Wait for the process to complete
+
+### Memory Management Commands
+
+VisionOS includes built-in commands for memory management demonstration:
+
+```bash
+# View command history
+visionos> history
+
+# Display memory statistics
+visionos> mem-stats
+
+# Clear command history (frees allocated memory)
+visionos> clear-history
+```
+
+See [MEMORY_MANAGEMENT.md](MEMORY_MANAGEMENT.md) for detailed information about memory management implementation.
 
 ### Exit
 
@@ -163,6 +188,7 @@ The main shell implementation includes:
 ### cv_show.py
 
 A Python script that:
+
 - Takes an image path as argument
 - Loads the image using OpenCV
 - Displays image information (dimensions, channels)
@@ -245,12 +271,14 @@ pip3 install opencv-python
 ### Command Not Found
 
 If standard commands fail:
+
 - Ensure the command exists in your PATH
 - Check command spelling
 
 ### Permission Denied
 
 If you get permission errors:
+
 - Ensure Python scripts are executable: `chmod +x apps/*.py`
 - Check file permissions on image files
 
