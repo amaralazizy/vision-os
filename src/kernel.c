@@ -3,49 +3,31 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 #include "visionos.h"
 
 int main() {
-    char input[MAX_INPUT];
+    char *input;
     printf("VisionOS Shell Initiated (with Memory Management).\n");
     printf("Built-in commands: history, clear-history, mem-stats, exit\n");
     printf("====================================\n\n");
 
+    setup_shell();
+
     while (1) {
-        printf("visionos> ");
-        fflush(stdout);
-
-        if (fgets(input, MAX_INPUT, stdin) == NULL) break;
-        input[strcspn(input, "\n")] = 0;
-        if (strlen(input) == 0) continue;
+        input = readline("visionos> ");
         
-        // Check for exit first
-        if (strcmp(input, "exit") == 0) {
-            printf("Cleaning up and exiting...\n");
-            clear_history();
-            break;
-        }
+        if (!input) break; // EOF
         
-        // Add command to history (demonstrates dynamic memory allocation)
-        add_to_history(input);
-        
-        // Handle built-in commands for memory management demonstration
-        if (strcmp(input, "history") == 0) {
-            show_history();
+        if (strlen(input) > 0) {
+            add_history(input);
+            add_to_history(input); // Keep our custom memory management in sync
+        } else {
+            free(input);
             continue;
         }
         
-        if (strcmp(input, "clear-history") == 0) {
-            clear_history();
-            printf("History cleared.\n");
-            continue;
-        }
-        
-        if (strcmp(input, "mem-stats") == 0) {
-            print_memory_stats();
-            continue;
-        }
-
         char *commands[MAX_ARGS];
         int num_cmds = 0;
         char *cmd_ptr = input;
@@ -63,10 +45,8 @@ int main() {
             parse_input(commands[i], args);
             if (args[0] == NULL) continue;
 
-            // Handle Built-ins (like cd)
-            if (strcmp(args[0], "cd") == 0 && num_cmds == 1) {
-                char *path = args[1] ? args[1] : getenv("HOME");
-                if (chdir(path) != 0) perror("cd failed");
+            // Handle Built-ins
+            if (num_cmds == 1 && handle_builtin(args)) {
                 continue;
             }
 
@@ -93,6 +73,8 @@ int main() {
             }
         }
         for (int i = 0; i < num_cmds; i++) wait(NULL);
+        
+        free(input);
     }
     return 0;
 }

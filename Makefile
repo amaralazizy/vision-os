@@ -9,7 +9,7 @@ VENV = .venv
 PIP = $(VENV)/bin/pip
 
 # Source files
-SOURCES = $(SRC_DIR)/kernel.c $(SRC_DIR)/utils.c $(SRC_DIR)/executor.c $(SRC_DIR)/memory.c
+SOURCES = $(SRC_DIR)/kernel.c $(SRC_DIR)/utils.c $(SRC_DIR)/executor.c $(SRC_DIR)/memory.c $(SRC_DIR)/shell.c $(SRC_DIR)/builtins.c
 OBJECTS = $(SOURCES:.c=.o)
 
 # Default target - does everything needed to make project work
@@ -44,7 +44,7 @@ setup:
 # Build the executable
 $(TARGET): $(SOURCES)
 	@echo "→ Compiling VisionOS shell..."
-	$(CC) $(CFLAGS) -o $(TARGET) $(SOURCES)
+	$(CC) $(CFLAGS) -o $(TARGET) $(SOURCES) -lreadline
 	@echo "✓ Build complete!"
 
 # Clean build artifacts
