@@ -54,6 +54,9 @@ clean:
 
 # Run the shell
 run: $(TARGET)
+	@echo "activating venv..."
+	@. $(VENV)/bin/activate; \
+	echo "Running VisionOS..."; \
 	./$(TARGET)
 
 # Help target
