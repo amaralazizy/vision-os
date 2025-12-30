@@ -14,10 +14,16 @@ int main() {
     printf("Built-in commands: history, clear-history, mem-stats, exit\n");
     printf("====================================\n\n");
 
+
     setup_shell();
+    
+    // Allow our signals to propagate even when readline is active
+    rl_catch_signals = 0;
 
     while (1) {
+        alarm(TIMEOUT_SECONDS);
         input = readline("visionos> ");
+        alarm(0);
         
         if (!input) break; // EOF
         
