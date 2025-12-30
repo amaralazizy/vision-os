@@ -16,6 +16,7 @@ VisionOS is a custom shell implementation that provides:
 - **Dual Execution Modes**:
   - Standard commands: Execute using `execvp()` (e.g., `ls`, `pwd`)
   - CV commands: Execute Python scripts with OpenCV (e.g., `cv-show img.jpg`)
+  - **Visual LS (`vls`)**: Search for images containing specific objects using YOLO (e.g., `vls car person`)
 - **Process Management**: Proper process forking and waiting
 
 ## Project Structure
@@ -26,9 +27,23 @@ vision-os/
 │   └── kernel.c          # Main shell implementation
 ├── apps/
 │   └── cv_show.py        # OpenCV image display script
+│   └── vls.py            # Visual LS script (YOLO)
 ├── Makefile              # Build configuration
 ├── .gitignore            # Git ignore rules
 └── README.md             # This file
+```
+
+## Usage
+
+### Visual LS (vls)
+
+Search for images containing specific objects in a directory.
+
+```bash
+visionos> vls . car
+[MATCH] car.jpg: {'car'}
+visionos> vls images --contains person dog
+[MATCH] park.jpg: {'person', 'dog'}
 ```
 
 ## Prerequisites

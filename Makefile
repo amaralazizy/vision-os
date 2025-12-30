@@ -1,7 +1,7 @@
 # VisionOS Makefile
 
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99
+CFLAGS = -Wall -Wextra -std=c99 -Iinclude -D_DEFAULT_SOURCE
 TARGET = visionos
 SRC_DIR = src
 BUILD_DIR = .
@@ -9,7 +9,7 @@ VENV = .venv
 PIP = $(VENV)/bin/pip
 
 # Source files
-SOURCES = $(SRC_DIR)/kernel.c
+SOURCES = $(SRC_DIR)/kernel.c $(SRC_DIR)/utils.c $(SRC_DIR)/executor.c
 OBJECTS = $(SOURCES:.c=.o)
 
 # Default target - does everything needed to make project work
@@ -49,7 +49,7 @@ $(TARGET): $(SOURCES)
 
 # Clean build artifacts
 clean:
-	rm -f $(TARGET) $(OBJECTS)
+	rm -f $(TARGET) $(SRC_DIR)/*.o
 	@echo "Clean complete!"
 
 # Run the shell
