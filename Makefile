@@ -9,7 +9,7 @@ VENV = .venv
 PIP = $(VENV)/bin/pip
 
 # Source files
-SOURCES = $(SRC_DIR)/kernel.c $(SRC_DIR)/utils.c $(SRC_DIR)/executor.c $(SRC_DIR)/memory.c $(SRC_DIR)/shell.c $(SRC_DIR)/builtins.c
+SOURCES = $(SRC_DIR)/kernel.c $(SRC_DIR)/utils.c $(SRC_DIR)/executor.c $(SRC_DIR)/memory.c $(SRC_DIR)/shell.c $(SRC_DIR)/builtins.c $(SRC_DIR)/signals.c
 OBJECTS = $(SOURCES:.c=.o)
 
 # Default target - does everything needed to make project work

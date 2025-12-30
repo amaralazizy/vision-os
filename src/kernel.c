@@ -6,9 +6,11 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "visionos.h"
+#include "signals.h"
 
 int main() {
     char *input;
+    setup_signals();
     printf("VisionOS Shell Initiated (with Memory Management).\n");
     printf("Built-in commands: history, clear-history, mem-stats, exit\n");
     printf("====================================\n\n");
@@ -64,7 +66,9 @@ int main() {
                     close(pipefd[0]);
                 }
                 execute_command(args);
+                exit(0);
             } else {
+                set_foreground_pid(pid);
                 if (prev_pipe_read != -1) close(prev_pipe_read);
                 if (i < num_cmds - 1) {
                     prev_pipe_read = pipefd[0];

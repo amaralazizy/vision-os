@@ -3,7 +3,13 @@ import sys
 import cv2
 import numpy as np
 import argparse
+import signal
 from cv_utils import read_image, write_image
+
+def signal_handler(sig, frame):
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 def main():
     parser = argparse.ArgumentParser(description="Apply sharpening to an image.")

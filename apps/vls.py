@@ -2,6 +2,12 @@ import sys
 import os
 import logging
 import argparse
+import signal
+
+def signal_handler(sig, frame):
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 # Configure logging to avoid cluttering stdout
 logging.getLogger("ultralytics").setLevel(logging.ERROR)
