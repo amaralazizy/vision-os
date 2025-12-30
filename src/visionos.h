@@ -4,6 +4,7 @@
 #define SHELL_MAX_INPUT 1024
 #define MAX_ARGS 64
 #define MAX_HISTORY 100
+#define TIMEOUT_SECONDS 60
 #define CV_PREFIX "cv-"
 #define SH_PREFIX "sh-"
 
