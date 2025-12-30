@@ -40,11 +40,26 @@ vision-os/
 Search for images containing specific objects in a directory.
 
 ```bash
-visionos> vls . car
-[MATCH] car.jpg: {'car'}
-visionos> vls images --contains person dog
-[MATCH] park.jpg: {'person', 'dog'}
+visionos> vls
+# Lists all images in current directory
+
+visionos> vls --contains car
+# Lists images in current directory containing a car
+
+visionos> vls test_imgs --contains person dog
+# Lists images in test_imgs containing EITHER a person OR a dog
+
+visionos> vls test_imgs --not-contains car
+# Lists images in test_imgs that do NOT contain a car
+
+visionos> vls test_imgs -a
+# Lists all images in test_imgs
+
+visionos> vls . -R --contains car
+# Recursively searches for images containing a car in the current directory and subdirectories
 ```
+
+**Note:** `vls` uses the YOLOv11 Small model (`yolo11s.pt`) for better accuracy. The first run will download the model weights.
 
 ## Prerequisites
 
