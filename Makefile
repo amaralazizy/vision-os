@@ -13,10 +13,7 @@ SOURCES = $(SRC_DIR)/kernel.c $(SRC_DIR)/utils.c $(SRC_DIR)/executor.c $(SRC_DIR
 OBJECTS = $(SOURCES:.c=.o)
 
 # Default target - does everything needed to make project work
-all: check-venv make-scripts-executable $(TARGET)
-	@echo ""
-	@echo "✓ VisionOS is ready to use!"
-	@echo "  Run with: ./$(TARGET)"
+all: clean setup run
 
 # Check if virtual environment exists, create if not
 check-venv:
@@ -35,10 +32,19 @@ make-scripts-executable:
 
 # Setup development environment
 setup:
+	@echo "→ Installing System dependencies..."
+	@if command -v apt-get >/dev/null; then \
+		echo "Detected apt-get. Installing libreadline-dev..."; \
+		sudo apt-get update && sudo apt-get install -y libreadline-dev; \
+	else \
+		echo "Warning: apt-get not found. Please ensure libreadline-dev is installed manually."; \
+	fi
 	@echo "→ Creating virtual environment..."
 	python3 -m venv $(VENV)
 	@echo "→ Installing Python dependencies..."
 	$(PIP) install -r requirements.txt
+	@echo "→ Making CV scripts executable..."
+	@chmod +x apps/*.py
 	@echo "✓ Setup complete!"
 
 # Build the executable
